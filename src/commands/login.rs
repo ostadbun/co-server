@@ -5,7 +5,10 @@ use url::Url;
 use webbrowser;
 
 pub fn run() {
-    let auth_url = "https://api.ostadban.tech/user/auth?provider=google";
+    let auth_url = std::env::var("OSBN_AUTH_URL").unwrap_or_else(|_| {
+        "https://api.ostadban.tech/user/auth?provider=google&redirect_uri=http://localhost:8000"
+            .to_string()
+    });
 
     let (tx, rx) = mpsc::channel();
     let server_thread = thread::spawn(move || {
@@ -42,7 +45,7 @@ pub fn run() {
         }
     });
 
-    webbrowser::open(auth_url).unwrap();
+    webbrowser::open(&auth_url).expect("Failed to open browser");
     println!("Browser opened for login...");
 
     let params = rx.recv().unwrap();
